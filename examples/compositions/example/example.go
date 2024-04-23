@@ -1,4 +1,4 @@
-package example
+package main
 
 import (
 	"reflect"
@@ -6,20 +6,23 @@ import (
 	xv1 "github.com/crossplane/crossplane/apis/apiextensions/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"github.com/mistermx/crossbuilder/examples/xrd-gen/apis/v1alpha1"
-	"github.com/mistermx/crossbuilder/pkg/generate/composition/build"
+	"crossbuilder/apis/v1alpha1"
+
+	"github.com/mproffitt/crossbuilder/pkg/generate/composition/build"
 )
 
-type ExampleBuilder struct{}
+type builder struct{}
 
-func (b *ExampleBuilder) GetCompositeTypeRef() build.ObjectKindReference {
+var Builder = builder{}
+
+func (b *builder) GetCompositeTypeRef() build.ObjectKindReference {
 	return build.ObjectKindReference{
 		GroupVersionKind: v1alpha1.XExampleGroupVersionKind,
 		Object:           &v1alpha1.XExample{},
 	}
 }
 
-func (b *ExampleBuilder) Build(c build.CompositionSkeleton) {
+func (b *builder) Build(c build.CompositionSkeleton) {
 	c.WithName("example")
 
 	c.

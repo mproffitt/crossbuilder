@@ -17,3 +17,5 @@ cover.out
 
 # ignore asdf local versions
 /.tool-versions
+examples/package
+examples/plugins

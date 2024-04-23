@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -62,5 +61,5 @@ func (w *directoryWriter) Write(c xapiextv1.Composition) error {
 	}
 
 	filename := fmt.Sprintf("%s.yaml", c.GetName())
-	return ioutil.WriteFile(filepath.Join(w.dir, filename), b, fs.FileMode(0664))
+	return os.WriteFile(filepath.Join(w.dir, filename), b, fs.FileMode(0664))
 }
