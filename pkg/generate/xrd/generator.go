@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-tools/pkg/loader"
 	"sigs.k8s.io/controller-tools/pkg/markers"
 
-	xrdmarkers "github.com/mistermx/crossbuilder/pkg/generate/xrd/markers"
+	xrdmarkers "github.com/mproffitt/crossbuilder/pkg/generate/xrd/markers"
 )
 
 const (
