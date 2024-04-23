@@ -1,0 +1,24 @@
+#!/bin/bash
+go mod tidy
+go build -trimpath -o xrc-gen ./cmd/xrc-gen
+
+export PATH=$PATH:$(pwd)
+
+path="$(find . -maxdepth 2 -type d -name compositions)"
+if [ "$path" == "" ]; then
+    echo "Cannot find compositions at current path"
+    exit 1
+fi
+
+cd "$(dirname $path)"
+
+echo "copying go.mod and go.sum"
+cp /crossbuilder/go.* .
+
+echo "generating definitions"
+go generate ./...
+
+echo "generating compositions"
+xrc-gen
+
+rm go.*

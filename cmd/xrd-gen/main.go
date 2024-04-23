@@ -30,7 +30,7 @@ import (
 	"sigs.k8s.io/controller-tools/pkg/markers"
 	"sigs.k8s.io/controller-tools/pkg/version"
 
-	"github.com/mistermx/crossbuilder/pkg/generate/xrd"
+	"github.com/mproffitt/crossbuilder/pkg/generate/xrd"
 )
 
 //go:generate go run sigs.k8s.io/controller-tools/cmd/helpgen/ generate paths=../../pkg/... generate:headerFile=../../hack/boilerplate.go.txt,year=2022
