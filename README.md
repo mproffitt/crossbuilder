@@ -74,6 +74,90 @@ location with a max depth of 1 and builds a plugin from each discovered
 directory, these are output to the `plugins` directory from where they will be
 loaded.
 
+### Structuring repositories
+
+> [!Note]
+> When structuring repositories intended to be used for compositions it should
+> be noted that this function will copy `go.mod` and `go.sum` into the repo at
+> runtime. This is to ensure that the plugins are built with the same version
+> information that the `xrc-gen` binary is compiled with.
+>
+> Whilst these files are relevant for building locally, they should be added to
+> `.gitignore` or added to the tree in such a way that they will not be shared
+> with the container.
+
+Whilst this is opinionated, when structuring your git repository for use with
+these tools, the `compositions` directory must exist at the root of the mounted
+directory when running inside a container.
+
+`xrc-gen` will write `package/compositions` at this location and this is
+currently immutable.
+
+Each composition folder can contain exactly one composition although multiple
+compositions may exist for the same XRD.
+
+```nohighlight
+.
+├── apis
+│   ├── generate.go
+│   └── v1alpha1
+│       ├── doc.go
+│       ├── example_types.go
+│       ├── groupversion_info.go
+│       └── zz_generated.deepcopy.go
+├── compositions
+│   ├── example
+│   │   └── example.go
+│   └── pipelineexample
+│       ├── pipeline.go
+│       └── templates
+│           ├── 01.tpl
+│           └── 02.tpl
+├── hack
+│   └── boilerplate.go.txt
+└── package
+    ├── compositions
+    │   ├── example.yaml
+    │   └── pipelineexample.yaml
+    └── xrds
+        └── test.example.com_xexamples.yaml
+```
+
+Given this current limitation, the above structure is recommended at the root
+of the mounted directory where:
+
+- `apis` contains the XRD specification
+- `compositions` contains the compositions relevant for the defined api
+- `hack` contains license header to inject into the generated API files (e.g.
+  those starting with `zz_generated`)
+- `package` contains automatically generated yaml
+
+When working with compositions, you may often want multiple compositions but only
+a single XRD. They may be different varients on the same provider, or for
+different cloud providers.
+
+With the countainer mount limitation in mind, if you required multiple XRDs in a
+single directory (e.g. a monolithic repo), then abstract one layer above to
+become the API group:
+
+For example:
+
+```nohighlight
+.
+├── my.custom.composition.io
+│   ├── apis
+│   ├── compositions
+│   ├── ...
+├── a.different.custom.composition.io
+│   ├── apis
+│   ├── compositions
+│   ├── ...
+...
+```
+
+you can then mount at `my.custom.composition.io` and the structure will be
+recognisable to the tooling.
+
 ### Running in a container
 
 The recommended way to execute these tools is via a container.
