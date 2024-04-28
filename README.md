@@ -3,21 +3,19 @@
 Crossbuilder is a tool that allows the generation of Crossplane XRDs and
 compositions from go code.
 
-This tool builds on [`mistermx/crossbuilder`](https://github.com/MisterMX/crossbuilder)
-to provide two tools, `xrd-gen` and `xrc-gen` which can be used to build crossplane
-definitions and compositions.
+This tool builds on [mistermx/crossbuilder] to provide two tools, `xrd-gen` and
+`xrc-gen` which can be used to build crossplane definitions and compositions.
 
 ## XRD Generation
 
-Crossbuilder's `xrd-gen` wraps around [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
-and [controller-gen](https://github.com/kubernetes-sigs/controller-tools) but
+Crossbuilder's `xrd-gen` wraps around [kubebuilder] and [controller-gen] but
 instead of generating CRDs (Custom Resource Definitions) it generates XRDs
 (Composite Resource Definitions) that are part of the Crossplane ecosystem.
 
 Crossbuilder has every feature that Kubebuilder's CRD generator provides plus
 the ability to define XRD specific fields.
 
-Take a look at the [xrd-gen examples](./examples/xrd-gen/apis/generate.go) for
+Take a look at the [api examples] for
 more details.
 
 ## Composition Generation
@@ -97,3 +95,8 @@ docker run -it -v $(pwd)/examples:/tmp/crossbuilder:rw xrdtools go generate ./..
 ```bash
 docker run -it -v $(pwd)/examples:/tmp/crossbuilder:rw xrdtools xrc-gen
 ```
+
+[mistermx/crossbuilder]: https://github.com/mproffitt/crossbuilder
+[kubebuilder]: https://github.com/kubernetes-sigs/kubebuilder
+[controller-gen]: https://github.com/kubernetes-sigs/controller-tools
+[api examples]: ./examples/apis/v1alpha1
