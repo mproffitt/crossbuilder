@@ -22,7 +22,8 @@ more details.
 
 ## Composition Generation
 
-> **Warning** Composition generation builds and executes code during runtime.
+> [!Warning]
+> Composition generation builds and executes code during runtime.
 >
 > This can be dangerous as it may impact the system on which the code is being
 > executed.
@@ -41,13 +42,13 @@ supported.
 Since go is a statically typed language, Crossbuilder is able to perform
 additional validation checks, such as patch path validation, that is a common
 cause of errors when writing Crossplane compositions. This is only applicable
-when running `xrc-gen` against a `Resource` type composition. It is not applicable
-for running against a `Pipeline` mode composition as resources may come from
-custom composition functions and templates making them ineligible for build-time
-discovery.
+when running `xrc-gen` against a `Resource` type composition. It is not
+applicable for running against a `Pipeline` mode composition as resources may
+come from custom composition functions and templates making them ineligible for
+build-time discovery.
 
-Compositions are written as `go` plugins and must implement the `CompositionBuilder`
-interface.
+Compositions are written as `go` plugins and must implement the
+`CompositionBuilder` interface.
 
 ```golang
 package main
