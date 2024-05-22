@@ -37,7 +37,8 @@ COPY . /build/
 # that the versions remain consistent.
 RUN sed -i 's#github.com/mproffitt/crossbuilder#crossbuilder#g' go.mod
 RUN sed -i 'x;/./{x;b};x;/require/h;//a\\tgithub.com/mproffitt/crossbuilder v0.0.1-dev2' go.mod
-RUN go mod tidy
+RUN go get crossbuilder/cmd/xrd-gen
+RUN go mod download
 
 # Build the builder binaries. The type=target mount tells Docker to mount the
 # current directory read-only in the WORKDIR. The type=cache mount tells Docker
