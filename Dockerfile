@@ -36,7 +36,7 @@ COPY . /build/
 # on github.com/mproffitt/crossbuilder instead of the local path and ensures
 # that the versions remain consistent.
 RUN sed -i 's#github.com/mproffitt/crossbuilder#crossbuilder#g' go.mod
-RUN sed -i 'x;/./{x;b};x;/require/h;//a\\tgithub.com/mproffitt/crossbuilder v0.0.1-dev' go.mod
+RUN sed -i 'x;/./{x;b};x;/require/h;//a\\tgithub.com/mproffitt/crossbuilder v0.0.1-dev2' go.mod
 RUN go mod tidy
 
 # Build the builder binaries. The type=target mount tells Docker to mount the
