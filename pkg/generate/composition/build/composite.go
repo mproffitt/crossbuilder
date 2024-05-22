@@ -154,6 +154,7 @@ func (c *compositionSkeleton) ToComposition() (xapiextv1.Composition, error) {
 	comp := xapiextv1.Composition{
 		Spec: xapiextv1.CompositionSpec{
 			CompositeTypeRef:                  xapiextv1.TypeReferenceTo(c.composite.GroupVersionKind),
+			Mode:                              &c.mode,
 			Resources:                         composedTemplates,
 			Pipeline:                          pipelineSteps,
 			WriteConnectionSecretsToNamespace: c.writeConnectionSecretsToNamespace,
