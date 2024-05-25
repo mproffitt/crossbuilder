@@ -36,9 +36,9 @@ func compilePlugins() (paths []string) {
 		log.Fatal(err)
 	}
 
-	if err := createGoMod(); err != nil {
+	/*if err := createGoMod(); err != nil {
 		log.Fatal(err)
-	}
+	}*/
 
 	for _, composition := range compositions {
 		var basename string = filepath.Base(composition)
@@ -53,11 +53,11 @@ func compilePlugins() (paths []string) {
 }
 
 func createGoMod() (err error) {
-	if err = copyFile("/go.mod", "go.mod"); err != nil {
+	if err = copyFile("/crossbuilder/go.mod", "go.mod"); err != nil {
 		return
 	}
 
-	if err = copyFile("/go.sum", "go.sum"); err != nil {
+	if err = copyFile("/crossbuilder/go.sum", "go.sum"); err != nil {
 		return
 	}
 
@@ -199,8 +199,6 @@ func main() {
 	}
 
 	// Clean up
-	_ = os.Remove("go.mod")
-	_ = os.Remove("go.sum")
 	_ = os.RemoveAll("plugins")
 
 	runner := build.NewRunner(build.RunnerConfig{

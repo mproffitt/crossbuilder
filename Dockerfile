@@ -47,17 +47,22 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /crossbuilder/xrd-gen ./cmd/xrd-gen
 
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -trimpath -o /crossbuilder/xrc-gen ./cmd/xrc-gen
-
 # Produce a new build image using the same go version as the build image. This
 # image will contain the builder binaries in /usr/local/bin.
 FROM --platform=${BUILDPLATFORM} golang:${GO_VERSION} AS image
-WORKDIR /tmp/crossbuilder
+WORKDIR /crossbuilder
 COPY --from=build /crossbuilder /usr/local/bin
-COPY --from=build /build/go.mod /build/go.sum /
+COPY --from=build /build/go.mod /build/go.sum /crossbuilder/
+RUN mkdir -p cmd/xrc-gen
+COPY pkg pkg
+
+COPY cmd/xrc-gen cmd/xrc-gen
+COPY scripts/gen /usr/local/bin/gen
+RUN chmod +x /usr/local/bin/gen
+# ENTRYPOINT [ "/usr/local/bin/gen" ]
 RUN mkdir /.cache
 RUN chmod a+rwx -R /.cache
-EXPOSE 9443
+RUN chmod a+rwx -R /crossbuilder
+ENV GOOS=linux
+ENV GOARCH=amd64
 USER 1000:1000
