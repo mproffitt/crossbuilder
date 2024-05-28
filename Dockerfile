@@ -59,7 +59,7 @@ COPY pkg pkg
 COPY cmd/xrc-gen cmd/xrc-gen
 COPY scripts/gen /usr/local/bin/gen
 RUN chmod +x /usr/local/bin/gen
-# ENTRYPOINT [ "/usr/local/bin/gen" ]
+ENTRYPOINT [ "/usr/local/bin/gen" ]
 RUN mkdir /.cache
 RUN chmod a+rwx -R /.cache
 RUN chmod a+rwx -R /crossbuilder
