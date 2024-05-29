@@ -257,11 +257,15 @@ func mapInputResource(oir *xpt.Resources, patches map[string][]xpt.ComposedPatch
 }
 
 func toPipelineStep(p *pipelineStepSkeleton) xapiextv1.PipelineStep {
-	return xapiextv1.PipelineStep{
+	var object xapiextv1.PipelineStep = xapiextv1.PipelineStep{
 		Step:        p.step,
 		FunctionRef: *p.functionRef,
-		Input: &runtime.RawExtension{
-			Object: p.input.Object,
-		},
 	}
+
+	if p.input != nil {
+		object.Input = &runtime.RawExtension{
+			Object: p.input.Object,
+		}
+	}
+	return object
 }
