@@ -191,7 +191,7 @@ func (c *compositionSkeleton) setupPipeline() ([]xapiextv1.PipelineStep, error) 
 		return nil, errors.New(errInvalidPipelineMode)
 	}
 
-	var pt *pipelineStepSkeleton
+	/*var pt *pipelineStepSkeleton
 	{
 		for _, v := range c.pipeline {
 			if v.functionRef != nil && v.functionRef.Name == functionPatchAndTransform {
@@ -201,7 +201,7 @@ func (c *compositionSkeleton) setupPipeline() ([]xapiextv1.PipelineStep, error) 
 		}
 	}
 
-	/*if pt == nil {
+	if pt == nil {
 		pt = &pipelineStepSkeleton{
 			step:                "patch-and-transform",
 			compositionSkeleton: c,
@@ -219,18 +219,18 @@ func (c *compositionSkeleton) setupPipeline() ([]xapiextv1.PipelineStep, error) 
 			},
 		}
 		c.pipeline = append(c.pipeline, pt)
-	}*/
+	}
 
-	oir := pt.input.Object.(*xpt.Resources)
+	oir := pt.input.Object.(*xpt.Resources)*/
 
 	pipelineSteps := make([]xapiextv1.PipelineStep, len(c.pipeline))
 	for i, p := range c.pipeline {
 		pipelineSteps[i] = toPipelineStep(p)
 		fmt.Printf("step: %+v\n", p.step)
-		if p.patches == nil {
+		/*if p.patches == nil {
 			continue
 		}
-		mapInputResource(oir, p.patches)
+		mapInputResource(oir, p.patches)*/
 	}
 	return pipelineSteps, nil
 }
