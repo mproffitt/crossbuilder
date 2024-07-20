@@ -201,7 +201,7 @@ func (c *compositionSkeleton) setupPipeline() ([]xapiextv1.PipelineStep, error) 
 		}
 	}
 
-	if pt == nil {
+	/*if pt == nil {
 		pt = &pipelineStepSkeleton{
 			step:                "patch-and-transform",
 			compositionSkeleton: c,
@@ -219,7 +219,7 @@ func (c *compositionSkeleton) setupPipeline() ([]xapiextv1.PipelineStep, error) 
 			},
 		}
 		c.pipeline = append(c.pipeline, pt)
-	}
+	}*/
 
 	oir := pt.input.Object.(*xpt.Resources)
 
