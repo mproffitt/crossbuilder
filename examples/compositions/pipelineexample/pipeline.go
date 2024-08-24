@@ -1,7 +1,7 @@
 package main
 
 import (
-	"crossbuilder/apis/v1alpha1"
+	"github.com/mproffitt/crossbuilder/examples/apis/v1alpha1"
 
 	xgt "github.com/crossplane-contrib/function-go-templating/input/v1beta1"
 	xpt "github.com/crossplane-contrib/function-patch-and-transform/input/v1beta1"

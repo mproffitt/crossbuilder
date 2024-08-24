@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	xapiextv1 "github.com/crossplane/crossplane/apis/apiextensions/v1"
 	"sigs.k8s.io/yaml"
@@ -52,14 +53,18 @@ type directoryWriter struct {
 }
 
 func (w *directoryWriter) Write(c xapiextv1.Composition) error {
+	p := strings.Split(c.Spec.CompositeTypeRef.APIVersion, ".")[0]
+
+	dir := filepath.Join(w.dir, p)
+
 	b, err := yaml.Marshal(c)
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(w.dir, fs.FileMode(0777)); err != nil {
+	if err := os.MkdirAll(dir, fs.FileMode(0777)); err != nil {
 		return err
 	}
 
 	filename := fmt.Sprintf("%s.yaml", c.GetName())
-	return os.WriteFile(filepath.Join(w.dir, filename), b, fs.FileMode(0664))
+	return os.WriteFile(filepath.Join(dir, filename), b, fs.FileMode(0664))
 }
