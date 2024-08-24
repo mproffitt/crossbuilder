@@ -2,16 +2,12 @@ package build
 
 import (
 	"fmt"
+	"log"
 
-	xpt "github.com/crossplane-contrib/function-patch-and-transform/input/v1beta1"
 	xapiextv1 "github.com/crossplane/crossplane/apis/apiextensions/v1"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-)
-
-const (
-	functionPatchAndTransform = "function-patch-and-transform"
 )
 
 type compositionSkeleton struct {
@@ -226,7 +222,7 @@ func (c *compositionSkeleton) setupPipeline() ([]xapiextv1.PipelineStep, error) 
 	pipelineSteps := make([]xapiextv1.PipelineStep, len(c.pipeline))
 	for i, p := range c.pipeline {
 		pipelineSteps[i] = toPipelineStep(p)
-		fmt.Printf("step: %+v\n", p.step)
+		log.Printf("(%s) step: %q\n", c.name, p.step)
 		/*if p.patches == nil {
 			continue
 		}
@@ -235,7 +231,7 @@ func (c *compositionSkeleton) setupPipeline() ([]xapiextv1.PipelineStep, error) 
 	return pipelineSteps, nil
 }
 
-func mapInputResource(oir *xpt.Resources, patches map[string][]xpt.ComposedPatch) {
+/*func mapInputResource(oir *xpt.Resources, patches map[string][]xpt.ComposedPatch) {
 	var added bool = false
 
 	for resourceName, resourcePatches := range patches {
@@ -254,7 +250,7 @@ func mapInputResource(oir *xpt.Resources, patches map[string][]xpt.ComposedPatch
 			})
 		}
 	}
-}
+}*/
 
 func toPipelineStep(p *pipelineStepSkeleton) xapiextv1.PipelineStep {
 	var object xapiextv1.PipelineStep = xapiextv1.PipelineStep{

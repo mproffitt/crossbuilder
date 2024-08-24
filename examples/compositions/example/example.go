@@ -6,7 +6,7 @@ import (
 	xv1 "github.com/crossplane/crossplane/apis/apiextensions/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"crossbuilder/apis/v1alpha1"
+	"github.com/mproffitt/crossbuilder/examples/apis/v1alpha1"
 
 	"github.com/mproffitt/crossbuilder/pkg/generate/composition/build"
 )
