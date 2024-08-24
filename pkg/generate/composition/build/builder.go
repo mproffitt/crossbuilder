@@ -53,6 +53,7 @@ func (b *compositionBuildRunner) Build() error {
 		compSkeleton := &compositionSkeleton{
 			composite: builder.GetCompositeTypeRef(),
 		}
+
 		builder.Build(compSkeleton)
 
 		comp, err := compSkeleton.ToComposition()

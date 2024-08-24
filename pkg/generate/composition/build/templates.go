@@ -8,25 +8,25 @@ import (
 )
 
 var templates []string
+var TemplateBasePath string
 
 func AddTemplate(path string) {
 	templates = append(templates, path)
 }
 
-func LoadTemplate(path string) (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
+func SetBasePath(path string) {
+	TemplateBasePath = path
+}
 
+func LoadTemplate(path string) (string, error) {
 	path = strings.TrimSuffix(path, "*")
 
 	templates = make([]string, 0)
 
 	if !strings.HasSuffix(path, "/") {
-		templates = append(templates, path)
+		templates = append(templates, filepath.Join(TemplateBasePath, path))
 	} else {
-		if err := filepath.WalkDir(filepath.Join(cwd, path), walk); err != nil {
+		if err := filepath.WalkDir(filepath.Join(TemplateBasePath, path), walk); err != nil {
 			return "", err
 		}
 	}

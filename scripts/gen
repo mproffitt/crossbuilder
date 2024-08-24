@@ -1,24 +1,25 @@
 #!/bin/bash
+
+(
+    cd crossbuilder
+    # Remove go.mod and go.sum to avoid conflicts with the parent go.mod and go.sum
+    rm go.mod go.sum
+
+    go mod tidy
+    echo "building xrc-gen"
+    go build -trimpath -o bin/xrc-gen cmd/xrc-gen/main.go
+
+    echo "building xrd-gen"
+    go build -trimpath -o bin/xrd-gen cmd/xrd-gen/main.go
+)
+
+./crossbuilder/bin/xrc-gen
+
+# Put go.mod and go.sum back to the original state
+(
+    cd crossbuilder
+    git checkout -- go.mod go.sum
+)
+
+# Put go.mod and go.sum back to the original state on the parent directory
 go mod tidy
-go build -trimpath -o xrc-gen ./cmd/xrc-gen
-
-export PATH=$PATH:$(pwd)
-
-path="$(find . -maxdepth 2 -type d -name compositions)"
-if [ "$path" == "" ]; then
-    echo "Cannot find compositions at current path"
-    exit 1
-fi
-
-cd "$(dirname $path)"
-
-echo "copying go.mod and go.sum"
-cp /crossbuilder/go.* .
-
-echo "generating definitions"
-go generate ./...
-
-echo "generating compositions"
-xrc-gen
-
-rm go.*
