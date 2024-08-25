@@ -1,8 +1,26 @@
 #!/bin/bash
 
+# This script is intended to be run from a parent repo that includes
+# crossbuilder as a submodule. It will update the crossbuilder submodule
+# and then build and run xrc-gen to generate the compositions.
+
+# Make sure that the crossbuilder repo is clean
 (
     cd crossbuilder
-    # Remove go.mod and go.sum to avoid conflicts with the parent go.mod and go.sum
+    git reset --hard HEAD
+)
+
+# Update submodules
+git submodule foreach git pull origin
+
+(
+    cd crossbuilder
+
+    # Remove go.mod and go.sum and rely on the parent
+    # directory's go.mod and go.sum. This ensures that
+    # crossbuilder and all compositions are built using
+    # the same dependencies, preventing mismatched versions
+    # when loading plugins.
     rm go.mod go.sum
 
     go mod tidy
