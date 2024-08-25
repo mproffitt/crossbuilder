@@ -9,10 +9,10 @@ github.com/crossplane-contrib/function-go-templating v0.4.1 h1:MR0iZDOlcxXHdAcTm
 github.com/crossplane-contrib/function-go-templating v0.4.1/go.mod h1:Z4xn7/TtTDIyUgnwSkO48mLHyDdwH+GLQBax8GtR44g=
 github.com/crossplane-contrib/function-patch-and-transform v0.5.0 h1:VwpJ9ulIGA0EI3U6am+JimNU+uKzK1dTXFrRfsZxqvM=
 github.com/crossplane-contrib/function-patch-and-transform v0.5.0/go.mod h1:yUJvaA38OIDlGL96VmlPMTDKE3ZBLu45sHdxoD6mNfE=
-github.com/crossplane/crossplane v1.16.0 h1:jWx2Q1zmbDcEypON29BhVYseHa3jv5DUP4cMu0CxiSI=
-github.com/crossplane/crossplane v1.16.0/go.mod h1:83GogcOWuGRs4npPbm8d+vyYJpfAqQnhWh4Vw57ys1Y=
-github.com/crossplane/crossplane-runtime v1.16.0 h1:lz+l0wEB3qowdTmN7t0PZkfuNSvfOoEhQrEYFbYqMow=
-github.com/crossplane/crossplane-runtime v1.16.0/go.mod h1:Pz2tdGVMF6KDGzHZOkvKro0nKc8EzK0sb/nSA7pH4Dc=
+github.com/crossplane/crossplane v1.15.3 h1:yWYlbuuTlbksxeWG0U+463N4EwYOQcn5nmzm1/FyC58=
+github.com/crossplane/crossplane v1.15.3/go.mod h1:RFXZloXXnm38odIrAcqO4tvDdDv3rYxP+zoesENBlVs=
+github.com/crossplane/crossplane-runtime v1.15.1 h1:g1h75tNYOQT152IUNxs8ZgSsRFQKrZN9z69KefMujXs=
+github.com/crossplane/crossplane-runtime v1.15.1/go.mod h1:kRcJjJQmBFrR2n/KhwL8wYS7xNfq3D8eK4JliEScOHI=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=

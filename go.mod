@@ -2,11 +2,16 @@ module github.com/mproffitt/crossbuilder
 
 go 1.22.2
 
+replace (
+	github.com/crossplane/crossplane => github.com/crossplane/crossplane v1.15.3
+	github.com/crossplane/crossplane-runtime => github.com/crossplane/crossplane-runtime v1.15.1
+)
+
 require (
 	github.com/crossplane-contrib/function-go-templating v0.4.1
 	github.com/crossplane-contrib/function-patch-and-transform v0.5.0
 	github.com/crossplane/crossplane v1.16.0
-	github.com/crossplane/crossplane-runtime v1.16.0
+	github.com/crossplane/crossplane-runtime v1.17.0-rc.0.0.20240509182037-b31be7747c60
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.0
 	k8s.io/api v0.30.3
