@@ -39,7 +39,7 @@ func compilePlugins() []string {
 	}
 
 	for _, path := range paths {
-		fmt.Println(path)
+		log.Println("found composition path", path)
 	}
 
 	cwd, err = os.Getwd()
@@ -100,6 +100,7 @@ func compile(path, composition string, wg *sync.WaitGroup, plugins chan t) {
 		"CGO_ENABLED=1",
 	}
 
+	retries := 3
 	for {
 		if err := runCmd(args, env, composition); err != nil {
 			plugins <- t{
@@ -113,9 +114,18 @@ func compile(path, composition string, wg *sync.WaitGroup, plugins chan t) {
 			break
 		}
 
-		if os.IsNotExist(err) {
-			log.Println("waiting for plugin to be compiled", composition)
-			<-time.After(10 * time.Microsecond)
+		if retries == 0 {
+			plugins <- t{
+				e: errors.Wrap(err, fmt.Sprintf("error compiling plugin %q", composition)),
+			}
+			return
+		}
+
+		retries--
+
+		if os.IsNotExist(err) && retries > 0 {
+			log.Println("error: plugin failed to show up, will retry", composition)
+			<-time.After(10 * time.Millisecond)
 			continue
 		}
 	}
@@ -241,18 +251,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("=====================================")
-	fmt.Println("Running generators")
+	log.Println("Running generators")
 	runGenerators()
 
-	fmt.Println(cwd)
-	fmt.Println("=====================================")
-	fmt.Println("Compiling plugins")
+	log.Println(cwd)
+	log.Println("Compiling plugins")
 
 	var paths []string = compilePlugins()
 	for _, path := range paths {
-		fmt.Println("-----------------------------------")
-		fmt.Println("loading plugin", path)
+		log.Println("loading plugin", path)
 		if err := loadPlugin(path); err != nil {
 			log.Println("error:", err)
 			continue
