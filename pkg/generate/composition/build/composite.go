@@ -2,6 +2,7 @@ package build
 
 import (
 	"fmt"
+	"log"
 
 	xpt "github.com/crossplane-contrib/function-patch-and-transform/input/v1beta1"
 	xapiextv1 "github.com/crossplane/crossplane/apis/apiextensions/v1"
@@ -226,7 +227,7 @@ func (c *compositionSkeleton) setupPipeline() ([]xapiextv1.PipelineStep, error) 
 	pipelineSteps := make([]xapiextv1.PipelineStep, len(c.pipeline))
 	for i, p := range c.pipeline {
 		pipelineSteps[i] = toPipelineStep(p)
-		fmt.Printf("step: %+v\n", p.step)
+		log.Printf("(%s) step: %q\n", c.name, p.step)
 		/*if p.patches == nil {
 			continue
 		}
