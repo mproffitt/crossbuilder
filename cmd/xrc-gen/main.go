@@ -263,9 +263,7 @@ func filePathWalkDir(root string, stopAt string) ([]string, error) {
 			_, err := os.Stat(filepath.Join(path, stopAt))
 			if err == nil {
 				switch {
-				case strings.HasPrefix(path, "crossbuilder"),
-					strings.HasPrefix(path, "internal"),
-					strings.HasPrefix(path, "pkg"):
+				case strings.HasPrefix(path, "crossbuilder"):
 					break
 				default:
 					files = append(files, path)
@@ -301,9 +299,7 @@ func runGenerators(log logr.Logger) {
 	// for compositions to embed.
 	for _, path := range paths {
 		switch {
-		case strings.HasPrefix(path, "internal"):
-			fallthrough
-		case strings.HasPrefix(path, "pkg"):
+		case strings.HasPrefix(path, "internal"), strings.HasPrefix(path, "pkg"):
 			primaryPaths = append(primaryPaths, path)
 		default:
 			secondaryPaths = append(secondaryPaths, path)
