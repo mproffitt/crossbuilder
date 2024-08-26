@@ -25,10 +25,10 @@ git submodule foreach git pull origin
 
     go mod tidy
     echo "building xrc-gen"
-    go build -trimpath -o bin/xrc-gen -ldflags="-X main.kubeBuilderVersion=$(git describe --tags --dirty --broken)" cmd/xrc-gen/main.go
+    go build -trimpath -o bin/xrc-gen -ldflags="-X main.kubeBuilderVersion=$(git describe --tags --dirty --broken --always)" cmd/xrc-gen/main.go
 
     echo "building xrd-gen"
-    go build -trimpath -o bin/xrd-gen -ldflags="-X main.kubeBuilderVersion=$(git describe --tags --dirty --broken)" cmd/xrd-gen/main.go
+    go build -trimpath -o bin/xrd-gen -ldflags="-X main.kubeBuilderVersion=$(git describe --tags --dirty --broken --always)" cmd/xrd-gen/main.go
 )
 
 ./crossbuilder/bin/xrc-gen

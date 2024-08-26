@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"go.uber.org/zap/zapcore"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/go-logr/logr"
@@ -23,16 +24,40 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var packages []build.CompositionBuilder
+const poolSize = 10
 
-type t struct {
-	p string
-	e error
+type pathchan struct {
+	p string // path
+	e error  // error
 }
 
-var log logr.Logger
+type plug struct {
+	plugin      string
+	composition string
+	plugins     chan pathchan
+}
 
-func compilePlugins() []string {
+var packages []build.CompositionBuilder
+
+func setupPool(plugins chan plug, wg *sync.WaitGroup, log logr.Logger) []chan bool {
+	var stop []chan bool = make([]chan bool, poolSize)
+	for i := 0; i < poolSize; i++ {
+		stop[i] = make(chan bool)
+		go func(i int) {
+			for {
+				select {
+				case <-stop[i]:
+					return
+				case p := <-plugins:
+					compile(p.plugin, p.composition, wg, p.plugins, log)
+				}
+			}
+		}(i)
+	}
+	return stop
+}
+
+func compilePlugins(log logr.Logger) []string {
 	var (
 		err   error
 		paths []string
@@ -61,13 +86,22 @@ func compilePlugins() []string {
 	wg := sync.WaitGroup{}
 	wg.Add(len(paths))
 
-	plugins := make(chan t, len(paths))
+	plugins := make(chan plug, len(paths))
+	pchan := make(chan pathchan, len(paths))
 	defer close(plugins)
+	defer close(pchan)
+
+	log.Info("starting workers")
+	stopchan := setupPool(plugins, &wg, log)
 
 	for _, composition := range paths {
 		basename := strings.Join(strings.Split(composition, "/"), "_")
 		plugin := filepath.Join(cwd, "plugins", fmt.Sprintf("%s.so", basename))
-		go compile(plugin, composition, &wg, plugins)
+		plugins <- plug{
+			plugin:      plugin,
+			composition: composition,
+			plugins:     pchan,
+		}
 	}
 
 	wg.Wait()
@@ -76,7 +110,7 @@ func compilePlugins() []string {
 	pluginPaths := make([]string, 0)
 
 	var i int = 1
-	for plugin := range plugins {
+	for plugin := range pchan {
 		if plugin.e != nil {
 			log.Info("error compiling", "plugin", plugin.e)
 		} else {
@@ -89,16 +123,23 @@ func compilePlugins() []string {
 		}
 		i++
 	}
+
+	log.Info("stopping all workers")
+	for _, stop := range stopchan {
+		stop <- true
+		close(stop)
+	}
+
 	log.Info("compiled all plugins")
 	return pluginPaths
 }
 
 // Dynamically compile the plugin
 // nolint:gosec
-func compile(path, composition string, wg *sync.WaitGroup, plugins chan t) {
+func compile(path, composition string, wg *sync.WaitGroup, plugins chan pathchan, log logr.Logger) {
 	defer wg.Done()
 
-	plugin := t{
+	plugin := pathchan{
 		p: path,
 	}
 
@@ -116,12 +157,12 @@ func compile(path, composition string, wg *sync.WaitGroup, plugins chan t) {
 	}
 
 	for retries := 3; retries > 0; retries-- {
-		if err := runCmd(args, env, composition); err != nil {
+		if err := runCmd(args, env, composition, log); err != nil {
 			plugin.e = errors.Wrap(err, fmt.Sprintf("error compiling plugin %q", composition))
 			break
 		}
 
-		log.Info("checking for plugin", path)
+		log.Info("checking for plugin", "path", path)
 		_, err := os.Stat(path)
 		if err == nil {
 			break
@@ -141,7 +182,7 @@ func compile(path, composition string, wg *sync.WaitGroup, plugins chan t) {
 	plugins <- plugin
 }
 
-func runCmd(args, env []string, wd string) error {
+func runCmd(args, env []string, wd string, log logr.Logger) error {
 	// MAX wait time for a build to complete is 5 minutes
 	var duration time.Duration = 300 * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
@@ -236,7 +277,7 @@ func filePathWalkDir(root string, stopAt string) ([]string, error) {
 	return files, err
 }
 
-func runGenerators() {
+func runGenerators(log logr.Logger) {
 	var (
 		err                                 error
 		paths, primaryPaths, secondaryPaths []string
@@ -278,7 +319,7 @@ func runGenerators() {
 			"PATH=" + os.Getenv("PATH") + ":" + filepath.Join(cwd, "crossbuilder", "bin"),
 		}
 
-		err = runCmd(args, env, path)
+		err = runCmd(args, env, path, log)
 		if err != nil {
 			log.Error(err, "error running generator", "path", path)
 			return
@@ -287,15 +328,15 @@ func runGenerators() {
 }
 
 func main() {
-	zl := zap.New(zap.UseDevMode(true))
+	zl := zap.New(zap.UseDevMode(true), zap.Level(zapcore.Level(-3)))
 	log := zl.WithName("crossbuilder")
-	ctrl.SetLogger(zl)
+	ctrl.SetLogger(log)
 
 	log.Info("running generators")
-	runGenerators()
+	runGenerators(log)
 	log.Info("Compiling plugins")
 
-	var paths []string = compilePlugins()
+	var paths []string = compilePlugins(log)
 	for _, path := range paths {
 		log.Info("loading", "plugin", path)
 		if err := loadPlugin(path); err != nil {
