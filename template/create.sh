@@ -38,9 +38,9 @@ function question()
     inform -n "$message > "
     read answer
     if [ -z $answer ]; then
-        answer=$(question "$message")
+        answer="$(question $message)"
     fi
-    echo $answer
+    echo "$answer"
 }
 
 moduleroot ()
@@ -60,7 +60,7 @@ moduleroot ()
 
 moduleroot || exit 1
 
-REPO="git config remote.origin.url | sed 's|git@||;s|:|/|g;s|.git||'"
+REPO_NAME="$(git config remote.origin.url | sed 's|git@||;s|:|/|g;s|.git||')"
 GROUP_NAME=$(question "Enter the group name" | tr '[:upper:]' '[:lower:]')
 COMPOSITION=$(question "Enter the composition name (lowercase, hyphenated)")
 GROUP_CLASS=$(question "Enter the group class (camel-cased struct name)")
@@ -70,7 +70,7 @@ GROUP_CLASS="${GROUP_CLASS^}"
 group_class_lower=$(tr '[:upper:]' '[:lower:]' <<< $GROUP_CLASS)
 
 inform "creating directories"
-mkdir -p ${BASE_PATH}/${GROUP_NAME}/{compositions/${COMPOSITION}/templates,v1alpha1,docs,examples}
+mkdir -p ${BASE_PATH}/${GROUP_NAME}/{apis,apidocs,{compositions/${COMPOSITION}/templates,v1alpha1,docs,examples},hack}
 
 inform "templating generate.go"
 sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
@@ -110,6 +110,7 @@ else
 fi
 
 if [ ! -f "${BASE_PATH}/${GROUP_NAME}/v1alpha1/${group_class_lower}_types.go" ]; then
+    inform "templating ${group_class_lower}_types.go"
     SHORTNAME=$(question "Enter a shortname for the XRD type" | tr '[:upper:]' '[:lower:]')
     ENFORCE_COMPOSITION=$(question "Enforce composition? (yes/no)" | tr '[:upper:]' '[:lower:]')
     sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
@@ -125,4 +126,22 @@ if [ ! -f "${BASE_PATH}/${GROUP_NAME}/v1alpha1/${group_class_lower}_types.go" ];
     fi
 fi
 
+if [ ! -f hack/boilerplate.go.txt ]; then
+    inform "copying boilerplate.go.txt to hack directory for autogen headers"
+    cp template/hack/boilerplate.go.txt hack
+fi
+
+if [ ! -f go.mod ]; then
+    inform "setting up go.mod with ${REPO_NAME}"
+    go mod init ${REPO_NAME}
+    go mod tidy
+fi
+
+if [ ! -f Makefile ]; then
+    inform "copying Makefile"
+    cp template/Makefile Makefile
+fi
+
+inform "Running make"
 make
+
