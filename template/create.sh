@@ -70,7 +70,7 @@ GROUP_CLASS="${GROUP_CLASS^}"
 group_class_lower=$(tr '[:upper:]' '[:lower:]' <<< $GROUP_CLASS)
 
 inform "creating directories"
-mkdir -p ${BASE_PATH}/${GROUP_NAME}/{apis,apidocs,{compositions/${COMPOSITION}/templates,v1alpha1,docs,examples},hack}
+mkdir -p {apis,apidocs,hack,${BASE_PATH}/${GROUP_NAME}/{compositions/${COMPOSITION}/templates,v1alpha1,docs,examples}}
 
 inform "templating generate.go"
 sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
