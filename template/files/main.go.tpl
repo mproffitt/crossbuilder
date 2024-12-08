@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/giantswarm/crossplane-gs-apis/crossplane.giantswarm.io/<GROUP_NAME>/v1alpha1"
+	"<REPO>/<BASE_PATH>/<GROUP_NAME>/v1alpha1"
 
 	xapiextv1 "github.com/crossplane/crossplane/apis/apiextensions/v1"
 	"github.com/mproffitt/crossbuilder/pkg/generate/composition/build"

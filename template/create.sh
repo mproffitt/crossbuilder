@@ -4,6 +4,7 @@ BASE_PATH=""
 
 if [ -z "${BASE_PATH}" ]; then
     echo "Base path is empty - please edit this script to set BASE_PATH"
+    echo "to the location of your APIs folder"
     exit 1
 fi
 
@@ -59,6 +60,7 @@ moduleroot ()
 
 moduleroot || exit 1
 
+REPO="git config remote.origin.url | sed 's|git@||;s|:|/|g;s|.git||'"
 GROUP_NAME=$(question "Enter the group name" | tr '[:upper:]' '[:lower:]')
 COMPOSITION=$(question "Enter the composition name (lowercase, hyphenated)")
 GROUP_CLASS=$(question "Enter the group class (camel-cased struct name)")
@@ -81,12 +83,14 @@ sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
     -e "s|<GROUP_CLASS>|${GROUP_CLASS}|g" \
     -e "s|<COMPOSITION>|${COMPOSITION}|g" \
     -e "s|<BASE_PATH>|${BASE_PATH}|g" \
+    -e "s|<REPO_NAME>|${REPO_NAME}|g" \
     template/files/main.go.tpl > ${BASE_PATH}/${GROUP_NAME}/compositions/${COMPOSITION}/main.go
 
 if [ ! -f ${BASE_PATH}/${GROUP_NAME}/v1alpha1/doc.go ]; then
     inform "templating doc.go"
     sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
         -e "s|<BASE_PATH>|${BASE_PATH}|g" \
+        -e "s|<REPO_NAME>|${REPO_NAME}|g" \
         template/files/doc.go.tpl > ${BASE_PATH}/${GROUP_NAME}/v1alpha1/doc.go
 fi
 
@@ -95,6 +99,7 @@ if [ ! -f ${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go ]; then
     sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
         -e "s|<GROUP_CLASS>|${GROUP_CLASS}|g" \
         -e "s|<BASE_PATH>|${BASE_PATH}|g" \
+        -e "s|<REPO_NAME>|${REPO_NAME}|g" \
         template/files/groupversion.go.tpl > ${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go
 else
     if ! grep -q "${GROUP_CLASS}List" ${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go; then
@@ -112,6 +117,7 @@ if [ ! -f "${BASE_PATH}/${GROUP_NAME}/v1alpha1/${group_class_lower}_types.go" ];
         -e "s|<SHORTNAME>|${SHORTNAME}|g" \
         -e "s|<COMPOSITION>|${COMPOSITION}|g" \
         -e "s|<BASE_PATH>|${BASE_PATH}|g" \
+        -e "s|<REPO_NAME>|${REPO_NAME}|g" \
         template/files/xrd.go.tpl > ${BASE_PATH}/${GROUP_NAME}/v1alpha1/${group_class_lower}_types.go
 
     if [ "$ENFORCE_COMPOSITION" = "no" ]; then
