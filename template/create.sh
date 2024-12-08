@@ -54,15 +54,21 @@ moduleroot ()
 
 moduleroot || exit 1
 
+crossbuilder_path=$(
+    git submodule foreach --quiet 'echo $(git config remote.origin.url) $path' | \
+        grep 'crossbuilder.git' | awk '{print $2}'
+)
+
 if [ ! -d template ]; then
     echo "Setting up the template directory for the first time"
-    crossbuilder_path=$(
-        git submodule foreach --quiet 'echo $(git config remote.origin.url) $path' | \
-            grep 'crossbuilder.git' | awk '{print $2}'
-    )
     cp -r ${crossbuilder_path}/template .
     base_path=$(question "please enter the api extension (e.g. crossplane.example.com)")
     sed -i "s|BASE_PATH=.*|BASE_PATH='${base_path}'|" template/create.sh
+fi
+
+if grep -q ${crossbuilder_path} <<< $0; then
+    ./template/create.sh
+    exit $?
 fi
 
 if [ -z "${BASE_PATH}" ]; then
@@ -70,8 +76,6 @@ if [ -z "${BASE_PATH}" ]; then
     echo "to the location of your APIs folder"
     exit 1
 fi
-
-
 
 REPO_NAME="$(git config remote.origin.url | sed 's|git@||;s|:|/|g;s|.git||')"
 GROUP_NAME=$(question "Enter the group name" | tr '[:upper:]' '[:lower:]')
