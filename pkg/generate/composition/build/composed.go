@@ -130,14 +130,14 @@ func (c *composeTemplateSkeleton) validatePatch(patch *xapiextv1.Patch, register
 		return validatePatchCombine(patch, c.base.Object, c.compositionSkeleton.composite.Object, registeredPaths, registeredCompositePaths)
 	case xapiextv1.PatchTypePatchSet:
 		return errors.New("patch types not supported")
-	case xapiextv1.PatchTypeFromEnvironmentFieldPath:
-		return errors.New("patch types not supported")
-	case xapiextv1.PatchTypeToEnvironmentFieldPath:
-		return errors.New("patch types not supported")
-	case xapiextv1.PatchTypeCombineFromEnvironment:
-		return errors.New("patch types not supported")
-	case xapiextv1.PatchTypeCombineToEnvironment:
-		return errors.New("patch types not supported")
+		/*case xapiextv1.PatchTypeFromEnvironmentFieldPath:
+			return errors.New("patch types not supported")
+		case xapiextv1.PatchTypeToEnvironmentFieldPath:
+			return errors.New("patch types not supported")
+		case xapiextv1.PatchTypeCombineFromEnvironment:
+			return errors.New("patch types not supported")
+		case xapiextv1.PatchTypeCombineToEnvironment:
+			return errors.New("patch types not supported")*/
 	}
 	return errors.Errorf(errUnknownPatchType, patchType)
 }
