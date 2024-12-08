@@ -7,7 +7,7 @@ import (
 
 // Package type metadata.
 const (
-	XRDGroup   = "<GROUP_NAME>.crossplane.giantswarm.io"
+	XRDGroup   = "<GROUP_NAME>.<BASE_PATH>"
 	XRDVersion = "v1alpha1"
 )
 
