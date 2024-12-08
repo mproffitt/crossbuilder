@@ -63,7 +63,7 @@ if [ ! -d template ]; then
     echo "Setting up the template directory for the first time"
     cp -r ${crossbuilder_path}/template .
     base_path=$(question "please enter the api extension (e.g. crossplane.example.com)")
-    sed -i "s|BASE_PATH=.*|BASE_PATH='${base_path}'|" template/create.sh
+    sed -i "s|^BASE_PATH=.*|BASE_PATH='${base_path}'|" template/create.sh
 fi
 
 if grep -q ${crossbuilder_path} <<< $0; then
