@@ -187,70 +187,13 @@ func (c *compositionSkeleton) setupPipeline() ([]xapiextv1.PipelineStep, error) 
 		return nil, errors.New(errInvalidPipelineMode)
 	}
 
-	/*var pt *pipelineStepSkeleton
-	{
-		for _, v := range c.pipeline {
-			if v.functionRef != nil && v.functionRef.Name == functionPatchAndTransform {
-				pt = v
-				break
-			}
-		}
-	}
-
-	if pt == nil {
-		pt = &pipelineStepSkeleton{
-			step:                "patch-and-transform",
-			compositionSkeleton: c,
-			functionRef: &xapiextv1.FunctionReference{
-				Name: functionPatchAndTransform,
-			},
-			input: &ObjectKindReference{
-				Object: &xpt.Resources{
-					TypeMeta: metav1.TypeMeta{
-						APIVersion: "pt.crossplane.io/v1beta1",
-						Kind:       "Resources",
-					},
-					Resources: make([]xpt.ComposedTemplate, 0),
-				},
-			},
-		}
-		c.pipeline = append(c.pipeline, pt)
-	}
-
-	oir := pt.input.Object.(*xpt.Resources)*/
-
 	pipelineSteps := make([]xapiextv1.PipelineStep, len(c.pipeline))
 	for i, p := range c.pipeline {
 		pipelineSteps[i] = toPipelineStep(p)
 		log.Printf("(%s) step: %q\n", c.name, p.step)
-		/*if p.patches == nil {
-			continue
-		}
-		mapInputResource(oir, p.patches)*/
 	}
 	return pipelineSteps, nil
 }
-
-/*func mapInputResource(oir *xpt.Resources, patches map[string][]xpt.ComposedPatch) {
-	var added bool = false
-
-	for resourceName, resourcePatches := range patches {
-		for i, oirp := range oir.Resources {
-			if oirp.Name == resourceName {
-				oir.Resources[i].Patches = append(oir.Resources[i].Patches, resourcePatches...)
-				added = true
-				break
-			}
-		}
-
-		if !added {
-			oir.Resources = append(oir.Resources, xpt.ComposedTemplate{
-				Name:    resourceName,
-				Patches: patches[resourceName],
-			})
-		}
-	}
-}*/
 
 func toPipelineStep(p *pipelineStepSkeleton) xapiextv1.PipelineStep {
 	var object xapiextv1.PipelineStep = xapiextv1.PipelineStep{
