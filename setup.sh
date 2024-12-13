@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 BASE_PATH=""
 
 SUBMODULE_URL="https://github.com/mproffitt/crossbuilder.git"
@@ -27,13 +26,23 @@ function inform()
     fi
 }
 
+function error()
+{
+    echo "$RED[ERROR]$RESET $@" 1>&2;
+}
+
+function warn()
+{
+    echo "$YELLOW[WARN]$RESET $@" 1>&2;
+}
+
 function question()
 {
     local message="$@"
     shift
     inform -n "$message > "
-    read answer
-    if [ -z $answer ]; then
+    read -r answer </dev/tty
+    if [ -z "$answer" ]; then
         answer="$(question $message)"
     fi
     echo "$answer"
@@ -64,8 +73,11 @@ moduleroot || (
     git submodule add ${SUBMODULE_URL}
     git submodule init
 
+    url=$(question "Enter the git remote URL (e.g. git@github.com:example/repo.git)")
+    git remote add origin $url
+
     if [ ! -f .gitignore ]; then
-        cp crossbuilder/template/gitignore .gitignore
+        cp crossbuilder/template/files/gitignore .gitignore
     fi
 
     git add .gitignore
@@ -78,10 +90,12 @@ moduleroot || (
     git commit -m "Initial commit"
 )
 
+sleep 1
 crossbuilder_path=$(
     git submodule foreach --quiet 'echo $(git config remote.origin.url) $path' | \
         grep 'crossbuilder.git' | awk '{print $2}'
 )
+echo "CROSSBUILDER found in ${crossbuilder_path}"
 
 if [ ! -d template ]; then
     echo "Setting up the template directory for the first time"
@@ -101,7 +115,8 @@ if [ ! -f Dockerfile ]; then
     cp ${crossbuilder_path}/template/files/Dockerfile Dockerfile
 fi
 
-if grep -q ${crossbuilder_path} <<< $0; then
+echo Running $0
+if grep -q 'setup.sh\|bash' <<< $0 ; then
     make create
     exit $?
 fi
@@ -150,6 +165,7 @@ if [ ! -f ${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go ]; then
     inform "templating groupversion.go"
     sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
         -e "s|<GROUP_CLASS>|${GROUP_CLASS}|g" \
+        -e "s|<GROUP_CLASS_LOWER>|${GROUP_CLASS,,}|g" \
         -e "s|<BASE_PATH>|${BASE_PATH}|g" \
         -e "s|<REPO_NAME>|${REPO_NAME}|g" \
         template/files/groupversion.go.tpl > ${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go
