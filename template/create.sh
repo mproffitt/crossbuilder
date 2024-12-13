@@ -2,6 +2,8 @@
 
 BASE_PATH=""
 
+SUBMODULE_URL="https://github.com/mproffitt/crossbuilder.git"
+
 RED=$(echo $'\033[31m');
 GREEN=$(echo $'\033[32m');
 YELLOW=$(echo $'\033[33m');
@@ -52,7 +54,29 @@ moduleroot ()
     return 0
 }
 
-moduleroot || exit 1
+moduleroot || (
+    ans=$(question "Create new git repository? (yes/no)")
+    if [ "$ans" = "no" ]; then
+        exit 0
+    fi
+
+    git init
+    git submodule add ${SUBMODULE_URL}
+    git submodule init
+
+    if [ ! -f .gitignore ]; then
+        cp crossbuilder/template/gitignore .gitignore
+    fi
+
+    git add .gitignore
+
+    if [ ! -f README.md ]; then
+        echo '# `'$(basename $(pwd))'`' > README.md
+    fi
+    git add README.md
+
+    git commit -m "Initial commit"
+)
 
 crossbuilder_path=$(
     git submodule foreach --quiet 'echo $(git config remote.origin.url) $path' | \
@@ -62,12 +86,23 @@ crossbuilder_path=$(
 if [ ! -d template ]; then
     echo "Setting up the template directory for the first time"
     cp -r ${crossbuilder_path}/template .
+    cp ${crossbuilder_path}/setup.sh template/create.sh
     base_path=$(question "please enter the api extension (e.g. crossplane.example.com)")
     sed -i "s|^BASE_PATH=.*|BASE_PATH='${base_path}'|" template/create.sh
 fi
 
+if [ ! -f Makefile ]; then
+    inform "copying Makefile"
+    cp ${crossbuilder_path}/template/files/Makefile Makefile
+fi
+
+if [ ! -f Dockerfile ]; then
+    inform "copying Dockerfile"
+    cp ${crossbuilder_path}/template/files/Dockerfile Dockerfile
+fi
+
 if grep -q ${crossbuilder_path} <<< $0; then
-    ./template/create.sh
+    make create
     exit $?
 fi
 
@@ -155,11 +190,6 @@ if [ ! -f go.mod ]; then
     go mod tidy
 fi
 
-if [ ! -f Makefile ]; then
-    inform "copying Makefile"
-    cp template/files/Makefile Makefile
-fi
-
 inform "Running make"
-make
+make build
 
