@@ -1,5 +1,0 @@
-#!/bin/bash
-
-git submodule add https://github.com/mproffitt/crossbuilder.git crossbuilder
-
-./crossbuilder/scripts/gen
