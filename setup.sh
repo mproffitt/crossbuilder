@@ -39,9 +39,8 @@ function warn()
 function question()
 {
     local message="$@"
-    shift
     inform -n "$message > "
-    read -r answer </dev/tty
+    read -er answer </dev/tty
     if [ -z "$answer" ]; then
         answer="$(question $message)"
     fi
