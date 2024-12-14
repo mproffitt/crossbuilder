@@ -224,7 +224,7 @@ if [ ! -f "apis/${GROUP_NAME}/crossplane.yaml"] ; then
         | (.metadata.labels.\"pkg.crossplane.io/owner\" = \"${OWNER}\") \
         | (.metadata.labels.\"pkg.crossplane.io/version\" = \"${VERSION}\") \
         | (.spec.crossplane.version = \"${CROSSPLANE_VERSION}\")"
-    yq "$query" template/files/crossplane.yaml.tpl > apis/${GROUP_NAME}/crossplane.yaml
+    yq "$query" template/files/crossplane.yaml > apis/${GROUP_NAME}/crossplane.yaml
 fi
 
 if [ ! -f hack/boilerplate.go.txt ]; then
