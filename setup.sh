@@ -50,10 +50,10 @@ function question()
         options=".*"
     fi
 
-    inform -n "$message > "
+    message="$CYAN$message > $RESET"
     # use </dev/tty to ensure read has a tty when
     # this script is run in a pipe
-    read -er answer </dev/tty
+    read -erp "${message}" answer </dev/tty
     if [ -z "$answer" ] || ! grep -qi "${options}" <<< "${answer}"; then
         answer="$(question $message)"
     fi
@@ -212,7 +212,7 @@ if [ ! -f "${BASE_PATH}/${GROUP_NAME}/v1alpha1/${group_class_lower}_types.go" ];
     fi
 fi
 
-if [ ! -f "apis/${GROUP_NAME}/crossplane.yaml"] ; then
+if [ ! -f "apis/${GROUP_NAME}/crossplane.yaml" ] ; then
     inform "templating crossplane.yaml"
     xp_version=$(question "please enter the minimum Crossplane version")
     if [ "${xp_version:0:1}" = "v" ]; then
