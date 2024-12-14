@@ -42,6 +42,9 @@ function question()
 {
     local message="$1"
     shift
+
+    local original_options="$@"
+
     local options="$@"
     if [ -n "${options}" ]; then
         message="$message [${options// /|}]"
@@ -55,7 +58,7 @@ function question()
     # this script is run in a pipe
     read -erp "${message}" answer </dev/tty
     if [ -z "$answer" ] || ! grep -qi "${options}" <<< "${answer}"; then
-        answer="$(question $message)"
+        answer=$(question "${message}" ${original_options})
     fi
     echo "$answer"
 }
@@ -83,32 +86,38 @@ moduleroot || (
     fi
 
     git init
-    git submodule add ${SUBMODULE_URL}
-    git submodule init
-
     url=$(question "Enter the git remote URL (e.g. git@github.com:example/repo.git)")
     git remote add origin $url
-
-    if [ ! -f .gitignore ]; then
-        cp crossbuilder/template/files/gitignore .gitignore
-    fi
-
-    git add .gitignore
-
-    if [ ! -f README.md ]; then
-        echo '# `'$(basename $(pwd))'`' > README.md
-    fi
-    git add README.md
-
-    git commit -m "Initial commit"
 )
 
-sleep 1
-crossbuilder_path=$(
+cb_path ()
+{
     git submodule foreach --quiet 'echo $(git config remote.origin.url) $path' | \
         grep 'crossbuilder.git' | awk '{print $2}'
-)
-echo "CROSSBUILDER found in ${crossbuilder_path}"
+}
+
+crossbuilder_path=$(cb_path)
+if [ -z "${crossbuilder_path}" ]; then
+    inform "Adding crossbuilder as a submodule"
+    git submodule add ${SUBMODULE_URL}
+    git submodule init
+    git add .gitmodules
+    crossbuilder_path=$(cb_path)
+fi
+
+if [ ! -f .gitignore ]; then
+    cp crossbuilder/template/files/gitignore .gitignore
+    git add .gitignore
+fi
+
+if [ ! -f README.md ]; then
+    echo '# `'$(basename $(pwd))'`' > README.md
+    git add README.md
+fi
+
+if ! git diff --cached --exit-code; then
+    git commit -m "Initial commit of crossbuilder submodule"
+fi
 
 if [ ! -d template ]; then
     echo "Setting up the template directory for the first time"
@@ -128,7 +137,6 @@ if [ ! -f Dockerfile ]; then
     cp ${crossbuilder_path}/template/files/Dockerfile Dockerfile
 fi
 
-echo Running $0
 if grep -q 'setup.sh\|bash' <<< $0 ; then
     make create
     exit $?
