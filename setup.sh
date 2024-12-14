@@ -15,6 +15,8 @@ RESET=$(echo $'\033[00m');
 
 BOLD=$(tput bold);
 NORMAL=$(tput sgr0)
+CROSSPLANE_VERSION="1.17.0"
+VERSION="v0.0.1"
 
 function inform()
 {
@@ -38,10 +40,21 @@ function warn()
 
 function question()
 {
-    local message="$@"
+    local message="$1"
+    shift
+    local options="$@"
+    if [ -n "${options}" ]; then
+        message="$message [${options// /|}]"
+        options="${options// /\\|}"
+    else
+        options=".*"
+    fi
+
     inform -n "$message > "
+    # use </dev/tty to ensure read has a tty when
+    # this script is run in a pipe
     read -er answer </dev/tty
-    if [ -z "$answer" ]; then
+    if [ -z "$answer" ] || ! grep -qi "${options}" <<< "${answer}"; then
         answer="$(question $message)"
     fi
     echo "$answer"
@@ -55,7 +68,7 @@ moduleroot ()
     done;
     local moduleName=$(basename `pwd`);
     if [ "$moduleName" = "/" ]; then
-        error "Cannot find root directory for current module. Are you sure it's a git repository?" 1>&2;
+        warn "Cannot find root directory for current module." 1>&2;
         cd "$wd";
         return 1;
     fi;
@@ -63,8 +76,9 @@ moduleroot ()
 }
 
 moduleroot || (
-    ans=$(question "Create new git repository? (yes/no)")
-    if [ "$ans" = "no" ]; then
+    ans=$(question "Create new git repository?" "yes" "no")
+    ans="${ans,,}"
+    if [ "${ans:0:1}" = "n" ]; then
         exit 0
     fi
 
@@ -126,17 +140,18 @@ if [ -z "${BASE_PATH}" ]; then
     exit 1
 fi
 
-REPO_NAME="$(git config remote.origin.url | sed 's|git@||;s|:|/|g;s|.git||')"
+REPO_NAME="$(git config remote.origin.url | sed 's#\(https://\|git@\)##;s#:#/#g;s#.git##')"
+OWNER=$(echo $REPO_NAME | cut -d'/' -f2)
 GROUP_NAME=$(question "Enter the group name" | tr '[:upper:]' '[:lower:]')
 COMPOSITION=$(question "Enter the composition name (lowercase, hyphenated)")
 GROUP_CLASS=$(question "Enter the group class (camel-cased struct name)")
 
 # Make sure at least the first letter is uppercase so go can export it
 GROUP_CLASS="${GROUP_CLASS^}"
-group_class_lower=$(tr '[:upper:]' '[:lower:]' <<< $GROUP_CLASS)
+group_class_lower=${$GROUP_CLASS,,}
 
 inform "creating directories"
-mkdir -p {apis,apidocs,hack,${BASE_PATH}/${GROUP_NAME}/{compositions/${COMPOSITION}/templates,v1alpha1,docs,examples}}
+mkdir -p {apis/${GROUP_NAME},apidocs,hack,${BASE_PATH}/${GROUP_NAME}/{compositions/${COMPOSITION}/templates,v1alpha1,docs,examples}}
 
 inform "templating generate.go"
 sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
@@ -164,12 +179,12 @@ if [ ! -f ${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go ]; then
     inform "templating groupversion.go"
     sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
         -e "s|<GROUP_CLASS>|${GROUP_CLASS}|g" \
-        -e "s|<GROUP_CLASS_LOWER>|${GROUP_CLASS,,}|g" \
+        -e "s|<GROUP_CLASS_LOWER>|${group_class_lower}|g" \
         -e "s|<BASE_PATH>|${BASE_PATH}|g" \
         -e "s|<REPO_NAME>|${REPO_NAME}|g" \
-        template/files/groupversion.go.tpl > ${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go
+        template/files/groupversion.go.tpl > "${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go"
 else
-    if ! grep -q "${GROUP_CLASS}List" ${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go; then
+    if ! grep -q "${GROUP_CLASS}List" "${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go"; then
         inform "updating groupversion.go"
         schema="SchemeBuilder.Register(\&${GROUP_CLASS}\{\}, \&${GROUP_CLASS}List\{\})"
         sed -i "s|func init() {|func init() {\n\t$schema|" ${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go
@@ -178,20 +193,38 @@ fi
 
 if [ ! -f "${BASE_PATH}/${GROUP_NAME}/v1alpha1/${group_class_lower}_types.go" ]; then
     inform "templating ${group_class_lower}_types.go"
-    SHORTNAME=$(question "Enter a shortname for the XRD type" | tr '[:upper:]' '[:lower:]')
-    ENFORCE_COMPOSITION=$(question "Enforce composition? (yes/no)" | tr '[:upper:]' '[:lower:]')
+    SHORTNAME=$(question "Enter a shortname for the XRD type")
+
+    ENFORCE_COMPOSITION=$(question "Enforce composition?" "yes" "no")
+    ENFORCE_COMPOSITION="${ENFORCE_COMPOSITION,,}"
+
     sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
         -e "s|<GROUP_CLASS>|${GROUP_CLASS}|g" \
         -e "s|<GROUP_CLASS_LOWER>|${GROUP_CLASS,,}|g" \
-        -e "s|<SHORTNAME>|${SHORTNAME}|g" \
+        -e "s|<SHORTNAME>|${SHORTNAME,,}|g" \
         -e "s|<COMPOSITION>|${COMPOSITION}|g" \
         -e "s|<BASE_PATH>|${BASE_PATH}|g" \
         -e "s|<REPO_NAME>|${REPO_NAME}|g" \
         template/files/xrd.go.tpl > ${BASE_PATH}/${GROUP_NAME}/v1alpha1/${group_class_lower}_types.go
 
-    if [ "$ENFORCE_COMPOSITION" = "no" ]; then
+    if [ "${ENFORCE_COMPOSITION:0:1}" = "n" ]; then
         sed -i '/.*enforcedCompositionRef.*/d' ${BASE_PATH}/${GROUP_NAME}/v1alpha1/${group_class_lower}_types.go
     fi
+fi
+
+if [ ! -f "apis/${GROUP_NAME}/crossplane.yaml"] ; then
+    inform "templating crossplane.yaml"
+    xp_version=$(question "please enter the minimum Crossplane version")
+    if [ "${xp_version:0:1}" = "v" ]; then
+        xp_version="${xp_version:1}"
+    fi
+    CROSSPLANE_VERSION=">=v${xp_version}"
+
+    query="(.metadata.name = \"${GROUP_NAME}\") \
+        | (.metadata.labels.\"pkg.crossplane.io/owner\" = \"${OWNER}\") \
+        | (.metadata.labels.\"pkg.crossplane.io/version\" = \"${VERSION}\") \
+        | (.spec.crossplane.version = \"${CROSSPLANE_VERSION}\")"
+    yq "$query" template/files/crossplane.yaml.tpl > apis/${GROUP_NAME}/crossplane.yaml
 fi
 
 if [ ! -f hack/boilerplate.go.txt ]; then

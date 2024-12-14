@@ -1,6 +1,7 @@
 # This Makefile requires the following additional tools:
 # - crossplane (https://crossplane.io/)
 # - kcl        (https://www.kcl-lang.io/)
+# - yq         (https://github.com/mikefarah/yq)
 # - toml-cli   (https://github.com/diversable/toml-editor-cli)
 
 # This Makefile is designed to fail if you have un-committed changed or
@@ -40,7 +41,7 @@ $(shell ( [ $(call git_has_changes, $(1)) -gt 0 ] && echo $(call git_changes) \
 endef
 
 define git_latest_tag
-$(shell git describe --tags --abbrev=0 2>/dev/null || echo 0.0.0)
+$(shell git describe --tags --abbrev=0 2>/dev/null || echo 0.0.1)
 endef
 
 define devversion
@@ -194,7 +195,10 @@ package-crossplane: build ## Package all crossplane packages
 	$(if $(call is_zero 0, $(words $(PACKAGES))), \
 		$(info No crossplane packages found), \
 		$(foreach p, $(PACKAGES), \
-			$(shell mkdir -p $(OUTPUT); crossplane xpkg build -f $(p) \
+			$(shell mkdir -p $(OUTPUT); \
+				yq -i "(.metadata.labels.\"pkg.crossplane.io/version\" = \"$(VERSION)\")" \
+					apis/$$(basename $(p))/crossplane.yaml; \
+				crossplane xpkg build -f $(p) \
 				-o $(OUTPUT)/$(call crossplane_package_version,$(p),-).xpkg; \
 				echo \(XP\) Packaged $(call crossplane_package_version,$(p),-) >&2) \
 		))
