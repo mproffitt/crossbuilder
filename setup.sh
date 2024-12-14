@@ -148,7 +148,7 @@ GROUP_CLASS=$(question "Enter the group class (camel-cased struct name)")
 
 # Make sure at least the first letter is uppercase so go can export it
 GROUP_CLASS="${GROUP_CLASS^}"
-group_class_lower=${$GROUP_CLASS,,}
+group_class_lower=${GROUP_CLASS,,}
 
 inform "creating directories"
 mkdir -p {apis/${GROUP_NAME},apidocs,hack,${BASE_PATH}/${GROUP_NAME}/{compositions/${COMPOSITION}/templates,v1alpha1,docs,examples}}
