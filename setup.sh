@@ -22,20 +22,20 @@ function inform()
 {
     if [ "$1" = '-n' ] ; then
         shift
-        echo -n "$WHITE[INFO]$RESET $@" 1>&2;
+        echo -n "$WHITE[INFO]$RESET $@" 1>&2
     else
-        echo "$WHITE[INFO]$RESET $@" 1>&2;
+        echo "$WHITE[INFO]$RESET $@" 1>&2
     fi
 }
 
 function error()
 {
-    echo "$RED[ERROR]$RESET $@" 1>&2;
+    echo "$RED[ERROR]$RESET $@" 1>&2
 }
 
 function warn()
 {
-    echo "$YELLOW[WARN]$RESET $@" 1>&2;
+    echo "$YELLOW[WARN]$RESET $@" 1>&2
 }
 
 function question()
@@ -65,15 +65,15 @@ function question()
 
 moduleroot ()
 {
-    local wd="$(pwd)";
+    local wd="$(pwd)"
     while [ ! -d ".git" ] && [ "$(pwd)" != "/" ]; do
-        cd ..;
-    done;
-    local moduleName=$(basename `pwd`);
+        cd ..
+    done
+    local moduleName=$(basename `pwd`)
     if [ "$moduleName" = "/" ]; then
-        warn "Cannot find root directory for current module." 1>&2;
-        cd "$wd";
-        return 1;
+        warn "Cannot find root directory for current module." 1>&2
+        cd "$wd"
+        return 1
     fi;
     return 0
 }
@@ -96,6 +96,7 @@ cb_path ()
         grep 'crossbuilder.git' | awk '{print $2}'
 }
 
+# Check if crossbuilder has already been added and if not, add it
 crossbuilder_path=$(cb_path)
 if [ -z "${crossbuilder_path}" ]; then
     inform "Adding crossbuilder as a submodule"
@@ -105,24 +106,27 @@ if [ -z "${crossbuilder_path}" ]; then
     crossbuilder_path=$(cb_path)
 fi
 
+# If we don't have a .gitignore, create a new one
 if [ ! -f .gitignore ]; then
     cp crossbuilder/template/files/gitignore .gitignore
     git add .gitignore
 fi
 
+# If we don't have a README, create a new one
 if [ ! -f README.md ]; then
     echo '# `'$(basename $(pwd))'`' > README.md
     git add README.md
 fi
 
-if ! git diff --cached --exit-code; then
+# If we have changes, commit them
+if ! git diff --cached --quiet --exit-code; then
     git commit -m "Initial commit of crossbuilder submodule"
 fi
 
 if [ ! -d template ]; then
     echo "Setting up the template directory for the first time"
     cp -r ${crossbuilder_path}/template .
-    cp ${crossbuilder_path}/setup.sh template/create.sh
+cp ${crossbuilder_path}/setup.sh template/create.sh
     base_path=$(question "please enter the api extension (e.g. crossplane.example.com)")
     sed -i "s|^BASE_PATH=.*|BASE_PATH='${base_path}'|" template/create.sh
 fi
@@ -153,6 +157,7 @@ OWNER=$(echo $REPO_NAME | cut -d'/' -f2)
 GROUP_NAME=$(question "Enter the group name" | tr '[:upper:]' '[:lower:]')
 COMPOSITION=$(question "Enter the composition name (lowercase, hyphenated)")
 GROUP_CLASS=$(question "Enter the group class (camel-cased struct name)")
+REPO=$(echo $REPO_NAME | cut -d'/' -f3)
 
 # Make sure at least the first letter is uppercase so go can export it
 GROUP_CLASS="${GROUP_CLASS^}"
@@ -164,6 +169,8 @@ mkdir -p {apis/${GROUP_NAME},apidocs,hack,${BASE_PATH}/${GROUP_NAME}/{compositio
 inform "templating generate.go"
 sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
     -e "s|<BASE_PATH>|${BASE_PATH}|g" \
+    -e "s|<REPO>|${REPO}|g" \
+    -e "s|<YEAR>|$(date +%Y)|g" \
     template/files/generate.go.tpl > ${BASE_PATH}/${GROUP_NAME}/generate.go
 
 inform "templating main.go"
@@ -173,6 +180,8 @@ sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
     -e "s|<COMPOSITION>|${COMPOSITION}|g" \
     -e "s|<BASE_PATH>|${BASE_PATH}|g" \
     -e "s|<REPO_NAME>|${REPO_NAME}|g" \
+    -e "s|<REPO>|${REPO}|g" \
+    -e "s|<YEAR>|$(date +%Y)|g" \
     template/files/main.go.tpl > ${BASE_PATH}/${GROUP_NAME}/compositions/${COMPOSITION}/main.go
 
 if [ ! -f ${BASE_PATH}/${GROUP_NAME}/v1alpha1/doc.go ]; then
@@ -180,6 +189,8 @@ if [ ! -f ${BASE_PATH}/${GROUP_NAME}/v1alpha1/doc.go ]; then
     sed -e "s|<GROUP_NAME>|${GROUP_NAME}|g" \
         -e "s|<BASE_PATH>|${BASE_PATH}|g" \
         -e "s|<REPO_NAME>|${REPO_NAME}|g" \
+        -e "s|<REPO>|${REPO}|g" \
+        -e "s|<YEAR>|$(date +%Y)|g" \
         template/files/doc.go.tpl > ${BASE_PATH}/${GROUP_NAME}/v1alpha1/doc.go
 fi
 
@@ -190,6 +201,8 @@ if [ ! -f ${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go ]; then
         -e "s|<GROUP_CLASS_LOWER>|${group_class_lower}|g" \
         -e "s|<BASE_PATH>|${BASE_PATH}|g" \
         -e "s|<REPO_NAME>|${REPO_NAME}|g" \
+        -e "s|<REPO>|${REPO}|g" \
+        -e "s|<YEAR>|$(date +%Y)|g" \
         template/files/groupversion.go.tpl > "${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go"
 else
     if ! grep -q "${GROUP_CLASS}List" "${BASE_PATH}/${GROUP_NAME}/v1alpha1/groupversion.go"; then
@@ -213,6 +226,8 @@ if [ ! -f "${BASE_PATH}/${GROUP_NAME}/v1alpha1/${group_class_lower}_types.go" ];
         -e "s|<COMPOSITION>|${COMPOSITION}|g" \
         -e "s|<BASE_PATH>|${BASE_PATH}|g" \
         -e "s|<REPO_NAME>|${REPO_NAME}|g" \
+        -e "s|<YEAR>|$(date +%Y)|g" \
+        -e "s|<REPO>|${REPO}|g" \
         template/files/xrd.go.tpl > ${BASE_PATH}/${GROUP_NAME}/v1alpha1/${group_class_lower}_types.go
 
     if [ "${ENFORCE_COMPOSITION:0:1}" = "n" ]; then
@@ -237,7 +252,7 @@ fi
 
 if [ ! -f hack/boilerplate.go.txt ]; then
     inform "copying boilerplate.go.txt to hack directory for autogen headers"
-    cp template/files/boilerplate.go.txt hack
+    sed -e "s|<REPO>|${REPO}|g" template/files/boilerplate.go.txt hack/boilerplate.go.txt
 fi
 
 if [ ! -f go.mod ]; then
